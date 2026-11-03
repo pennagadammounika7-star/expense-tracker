@@ -1,5 +1,7 @@
 # Expense Tracker
 
+![Expense Tracker screenshot](screenshot.png)
+
 A Flask web app to record, categorize and summarize daily expenses.
 
 ## Features
