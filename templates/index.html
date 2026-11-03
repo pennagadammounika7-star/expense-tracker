@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Expense Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>💰 Expense Tracker</h1>
+
+    <section class="card">
+      <h2>{{ 'Edit Expense' if editing else 'Add Expense' }}</h2>
+      <form method="post"
+            action="{{ url_for('update', expense_id=editing['id']) if editing else url_for('add') }}"
+            class="form-row">
+        <input type="text" name="title" placeholder="Title" required
+               value="{{ editing['title'] if editing else '' }}">
+        <input type="number" name="amount" placeholder="Amount" step="0.01" min="0" required
+               value="{{ editing['amount'] if editing else '' }}">
+        <select name="category">
+          {% for c in categories %}
+          <option value="{{ c }}" {% if editing and editing['category'] == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+        <input type="date" name="date" required value="{{ editing['date'] if editing else today }}">
+        <button type="submit">{{ 'Update' if editing else 'Add' }}</button>
+        {% if editing %}<a class="btn-link" href="{{ url_for('index') }}">Cancel</a>{% endif %}
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Filter</h2>
+      <form method="get" class="form-row">
+        <select name="category">
+          <option value="">All categories</option>
+          {% for c in categories %}
+          <option value="{{ c }}" {% if selected_category == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+        <input type="month" name="month" value="{{ selected_month }}">
+        <button type="submit">Apply</button>
+        <a class="btn-link" href="{{ url_for('index') }}">Reset</a>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Summary by Category</h2>
+      {% if summary %}
+        {% for s in summary %}
+        <div class="bar-row">
+          <span class="bar-label">{{ s['category'] }}</span>
+          <div class="bar-track">
+            <div class="bar-fill" style="width: {{ (s['total'] / max_total * 100)|round(0) }}%"></div>
+          </div>
+          <span class="bar-value">₹{{ '%.2f'|format(s['total']) }}</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="muted">No data yet.</p>
+      {% endif %}
+    </section>
+
+    <section class="card">
+      <h2>Expenses <span class="total">Total: ₹{{ '%.2f'|format(total) }}</span></h2>
+      {% if expenses %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Title</th><th>Category</th><th>Amount</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {% for e in expenses %}
+            <tr>
+              <td>{{ e['date'] }}</td>
+              <td>{{ e['title'] }}</td>
+              <td><span class="tag">{{ e['category'] }}</span></td>
+              <td>₹{{ '%.2f'|format(e['amount']) }}</td>
+              <td class="actions">
+                <a class="btn-link" href="{{ url_for('index', edit=e['id']) }}">Edit</a>
+                <form method="post" action="{{ url_for('delete', expense_id=e['id']) }}"
+                      onsubmit="return confirm('Delete this expense?');">
+                  <button type="submit" class="danger">Delete</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <p class="muted">No expenses found.</p>
+      {% endif %}
+    </section>
+  </div>
+</body>
+</html>
